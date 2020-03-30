@@ -119,7 +119,7 @@ Date:   Thu Apr 11 14:16:19 2019 +0800
 
 > 需要友情提示的是，你看到的一大串类似 1094adb... 的是 commit id（版本号）是一个 SHA1 计算出来的一个非常大的数字，用十六进制表示
 
-首先，Git必须知道当前版本是哪个版本，在Git中，用HEAD表示当前版本，也就是最新的提交1094adb...（注意我的提交ID和你的肯定不一样），上一个版本就是HEAD^，上上一个版本就是HEAD^^，当然往上100个版本写100个^比较容易数不过来，所以写成HEAD~100。
+首先，Git必须知道当前版本是哪个版本，在Git中，用HEAD表示当前版本，也就是最新的提交1094adb...（注意我的提交ID和你的肯定不一样），上一个版本就是HEAD，上上一个版本就是HEAD，当然往上100个版本写100个比较容易数不过来，所以写成HEAD~100。
 ```
 cl22@DESKTOP-7VCRQT0 MINGW64 /f/gitRep/rep (master)
 $ git reset --hard HEAD^
@@ -251,6 +251,154 @@ Branch 'master' set up to track remote branch 'master' from 'origin'.
 $ git push origin master
 ```
 
+# 六 将写完的代码 push 到远程仓库一般步骤
+
+## (1) git bash here
+
+在项目本地仓库鼠标右键点开 
+
+## (2) git status
+
+查看工作区和暂存区文件状态
+```
+$ git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+        ../XJL-Notes/
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+
+## (3) git add 
+
+将工作区文件添加至暂存区, * 表示所有文件
+```
+$ git add *
+```
+
+## (4) git commit -m "xxxxxxx"
+
+将暂存区文件提交至本地仓库，并编辑本次提交注释
+```
+$ git commit -m "创建README"
+[master (root-commit) 7a4f65a] 创建README
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 xjl-notes/README.md
+
+```
+
+## (5) git push
+
+将本地仓库更新推送至远程仓库
+```
+$ git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 266 bytes | 266.00 KiB/s, done.
+Total 4 (delta 0), reused 0 (delta 0)
+To 192.168.2.88:doc/study.git
+ * [new branch]      master -> master
+```
+
+# 七 git 分支
+
+## 分支原理
+
+简单来说，Git 处理分支的方式轻量的原因是：Git 保存的不是文件的变化或者差异，而是一系列不同时刻的文件快照
+
+## 分支创建
+
+git 为你创建了一个可以移动的新的指针。 比如，创建一个 testing 分支， 你需要使用 git branch 命令：
+```
+$ git branch testing
+```
+这会在当前所在的提交对象上创建一个指针。
+
+<div align="center"> <img src="../xjl-notes/docs/pics/Git/two-branches.png" width="500px"/> </div><br>
+
+而此时本地指针 head 指向原有 master 分支
+
+<div align="center"> <img src="../xjl-notes/docs/pics/Git/head-to-master.png" width="500px"/> </div><br>
+
+你可以简单地使用 git log 命令查看各个分支当前所指的对象,提供这一功能的参数是 --decorate
+```
+$ git log --oneline --decorate
+```
+
+## 分支切换
+
+将本地 head 指针指向 testing 分支
+```
+$ git checkout testing
+```
+
+<div align="center"> <img src="../xjl-notes/docs/pics/Git/head-to-testing.png" width="500px"/> </div><br>
+
+此时，便可以在分支间进行任意切换开发，就类似各类科幻电影的时间机器一样，创建了时间分支 ，结果如下图
+
+<div align="center"> <img src="../xjl-notes/docs/pics/Git/advance-master.png" width="500px"/> </div><br>
+
+## 分支切换常见问题
+
+（1）切换分支时，会把当前分支未 commit 的修改内容带到下个分支中去
+
+eg：本地有两个分支 A,B 对 A 分支进行修改后，未 commit 到本地仓库，git checkout B 后，这些修改会带到 B 分支去
+
+解决方法如下：
+
+从 A 切到 B ，发现 A 的修改带到 B ，切回 A 分支，然后使用指令
+```
+git stash
+```
+或
+```
+git stash save “修改的信息"
+```
+将修改暂时保存到栈中，这样 A 的代码会回到上一个 commit 的情况，然后就可以切换到 B 分支，修改完 B 后，再切回A，然后使用指令
+```
+git stash pop
+``` 
+取出栈顶保存的改动
+或者使用
+```
+git stash list
+```
+查询栈信息，然后通过
+```
+git stash apply stash@{0}
+```
+选择取出第0个
+
+在使用 git checkout , git status 等指令以后会有一些状态标识符，如M,T,D,A,R,U等等，解释如下：
+
+A: 增加的文件
+
+C: 文件的一个新拷贝
+
+D: 删除的一个文件
+
+M: 文件的内容或者mode被修改了
+
+R: 文件名被修改了
+
+T: 文件的类型被修改了
+
+U: 文件没有被合并(你需要完成合并才能进行提交)
+
+X: 未知状态。(很可能是遇到git的bug了，你可以向git提交bug report)
+
+在git diff-files的手册man git diff-files中可以查到这些标志的说明。
+
+
 # 参考资料
 
 <a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000" target="_blank">廖雪峰 : Git 教程</a>
+
+<a href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%88%86%E6%94%AF%E7%AE%80%E4%BB%8B" target="_blank">Git 官方文档</a>
+
+<a href="https://blog.csdn.net/anhenzhufeng/article/details/78052418" target="_blank">csdn git切换分支保存修改的代码的方法</a>
